@@ -1,4 +1,4 @@
-import tsconfigPaths from 'vite-tsconfig-paths';
+// import tsconfigPaths from 'vite-tsconfig-paths';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -38,9 +38,9 @@ export default defineNuxtConfig({
     }
   },
 
-  vite: {
-    plugins: [tsconfigPaths()]
-  },
+  // vite: {
+  //   plugins: [tsconfigPaths()]
+  // },
 
   eslint: {
     config: {
