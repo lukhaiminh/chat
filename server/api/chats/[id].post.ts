@@ -1,42 +1,58 @@
-import { convertToModelMessages, createUIMessageStream, createUIMessageStreamResponse, generateText, smoothStream, stepCountIs, streamText } from 'ai'
-import { gateway } from '@ai-sdk/gateway'
-import type { UIMessage } from 'ai'
-import { z } from 'zod'
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  generateText,
+  smoothStream,
+  stepCountIs,
+  streamText
+} from 'ai';
+import { openai } from '@ai-sdk/openai';
+import type { UIMessage } from 'ai';
+import { z } from 'zod';
 
 defineRouteMeta({
   openAPI: {
     description: 'Chat with AI.',
     tags: ['ai']
   }
-})
+});
 
 export default defineEventHandler(async (event) => {
-  const session = await getUserSession(event)
+  const session = await getUserSession(event);
 
-  const { id } = await getValidatedRouterParams(event, z.object({
-    id: z.string()
-  }).parse)
+  const { id } = await getValidatedRouterParams(
+    event,
+    z.object({
+      id: z.string()
+    }).parse
+  );
 
-  const { model, messages } = await readValidatedBody(event, z.object({
-    model: z.string(),
-    messages: z.array(z.custom<UIMessage>())
-  }).parse)
+  const { model, messages } = await readValidatedBody(
+    event,
+    z.object({
+      model: z.string(),
+      messages: z.array(z.custom<UIMessage>())
+    }).parse
+  );
 
-  const db = useDrizzle()
+  const db = useDrizzle();
 
   const chat = await db.query.chats.findFirst({
     where: (chat, { eq }) => and(eq(chat.id, id as string), eq(chat.userId, session.user?.id || session.id)),
     with: {
       messages: true
     }
-  })
+  });
   if (!chat) {
-    throw createError({ statusCode: 404, statusMessage: 'Chat not found' })
+    throw createError({ statusCode: 404, statusMessage: 'Chat not found' });
   }
 
   if (!chat.title) {
     const { text: title } = await generateText({
-      model: gateway('openai/gpt-4o-mini'),
+      // model: gateway('openai/gpt-4o-mini'),
+      model: openai('gpt-4o-mini'),
+      // model: openai(FINE_TUNING_MODEL),
       system: `You are a title generator for a chat:
           - Generate a short title based on the first user's message
           - The title should be less than 30 characters long
@@ -44,24 +60,29 @@ export default defineEventHandler(async (event) => {
           - Do not use quotes (' or ") or colons (:) or any other punctuation
           - Do not use markdown, just plain text`,
       prompt: JSON.stringify(messages[0])
-    })
+    });
 
-    await db.update(tables.chats).set({ title }).where(eq(tables.chats.id, id as string))
+    await db
+      .update(tables.chats)
+      .set({ title })
+      .where(eq(tables.chats.id, id as string));
   }
 
-  const lastMessage = messages[messages.length - 1]
+  const lastMessage = messages[messages.length - 1];
   if (lastMessage?.role === 'user' && messages.length > 1) {
     await db.insert(tables.messages).values({
       chatId: id as string,
       role: 'user',
       parts: lastMessage.parts
-    })
+    });
   }
 
   const stream = createUIMessageStream({
     execute: ({ writer }) => {
       const result = streamText({
-        model: gateway(model),
+        // model: gateway(model),
+        model: openai(model),
+        // model: 'ft:gpt-4.1-mini-2025-04-14:smilegate-viet-nam-tax-code-0317591753::CbM6HTUQ',
         system: `You are a knowledgeable and helpful AI assistant. ${session.user?.username ? `The user's name is ${session.user.username}.` : ''} Your goal is to provide clear, accurate, and well-structured responses.
 
 **FORMATTING RULES (CRITICAL):**
@@ -81,8 +102,8 @@ export default defineEventHandler(async (event) => {
         messages: convertToModelMessages(messages),
         providerOptions: {
           openai: {
-            reasoningEffort: 'low',
-            reasoningSummary: 'detailed'
+            // reasoningEffort: 'low',
+            // reasoningSummary: 'detailed'
           },
           google: {
             thinkingConfig: {
@@ -97,30 +118,34 @@ export default defineEventHandler(async (event) => {
           weather: weatherTool,
           chart: chartTool
         }
-      })
+      });
 
       if (!chat.title) {
         writer.write({
           type: 'data-chat-title',
           data: { message: 'Generating title...' },
           transient: true
-        })
+        });
       }
 
-      writer.merge(result.toUIMessageStream({
-        sendReasoning: true
-      }))
+      writer.merge(
+        result.toUIMessageStream({
+          sendReasoning: true
+        })
+      );
     },
     onFinish: async ({ messages }) => {
-      await db.insert(tables.messages).values(messages.map(message => ({
-        chatId: chat.id,
-        role: message.role as 'user' | 'assistant',
-        parts: message.parts
-      })))
+      await db.insert(tables.messages).values(
+        messages.map((message) => ({
+          chatId: chat.id,
+          role: message.role as 'user' | 'assistant',
+          parts: message.parts
+        }))
+      );
     }
-  })
+  });
 
   return createUIMessageStreamResponse({
     stream
-  })
-})
+  });
+});

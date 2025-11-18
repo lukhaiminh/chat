@@ -1,0 +1,53 @@
+{
+  // Disable the default formatter, use eslint instead
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // "editor.codeActionsOnSave": {
+  //   // "source.fixAll.eslint": "explicit",
+  //   "source.organizeImports": "explicit"
+  // },
+
+  // "editor.tabSize": 2,
+  // "editor.insertSpaces": true,
+  // "prettier.singleQuote": true,
+  // "prettier.trailingComma": "none",
+  // "prettier.useTabs": false,
+  // "prettier.bracketSpacing": true,s
+  // "prettier.bracketSameLine": false,
+  // "prettier.singleAttributePerLine": true,
+  // "prettier.printWidth": 80,
+  "editor.rulers": [80, 120],
+  // "html.format.wrapAttributes": "force-aligned",
+  // "html.autoClosingTags": true,
+  // "workbench.tree.indent": 8,
+
+  "editor.gotoLocation.multipleDefinitions": "goto",
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "tailwindCSS.classAttributes": ["class", "ui"],
+  "tailwindCSS.experimental.classRegex": [["ui:\\s*{([^)]*)\\s*}", "(?:'|\"|`)([^']*)(?:'|\"|`)"]],
+  // "eslint.workingDirectories": [{ "mode": "auto" }],
+  // "eslint.rules.customizations": [
+  //   { "rule": "style/*", "severity": "warn", "fixable": true },
+  //   { "rule": "format/*", "severity": "warn", "fixable": true },
+  //   { "rule": "*-indent", "severity": "warn", "fixable": true },
+  //   { "rule": "*-spacing", "severity": "warn", "fixable": true },
+  //   { "rule": "*-spaces", "severity": "warn", "fixable": true },
+  //   { "rule": "*-order", "severity": "warn", "fixable": true },
+  //   { "rule": "*-dangle", "severity": "warn", "fixable": true },
+  //   { "rule": "*-newline", "severity": "warn", "fixable": true },
+  //   { "rule": "*quotes", "severity": "warn", "fixable": true },
+  //   { "rule": "*semi", "severity": "warn", "fixable": true }
+  // ],
+  // "eslint.validate": ["javascript", "typescript", "vue", "html", "markdown", "json", "css", "less", "scss"],
+  // "workbench.editor.labelFormat": "short",
+  // "workbench.editorAssociations": {
+  //   "*.svg": "default"
+  // },
+  // "vitest.nodeExecutable": "~/.nvm/versions/node/v22.15.0/bin/node",
+  "i18n-ally.localesPaths": ["i18n", "i18n/locales"]
+}
